@@ -21,6 +21,21 @@ CAIRO = "cairo/Cairo[slnt,wght].ttf"
 AMIRI = "amiri/Amiri-Bold.ttf"
 SAVE_HINT = "احفظها لتعود إليها"
 HANDLE = "@brahime.dian"
+MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"]  # Moroccan names
+DAYS = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+
+
+def date_line(q):
+    """'الجمعة 23 أكتوبر 2026 · 12 جمادى الأولى 1448هـ' from q['date'] (YYYY-MM-DD, default today) and q['hijri']."""
+    if not q.get("hijri") and not q.get("date"):
+        return None
+    import datetime
+    d = datetime.date.fromisoformat(q["date"]) if q.get("date") else datetime.date.today()
+    g = f"{DAYS[d.weekday()]} {d.day} {MONTHS[d.month - 1]} {d.year}"
+    h = q.get("hijri")
+    if h and not h.endswith("هـ"):
+        h += "هـ"
+    return f"{g} · {h}" if h else g
 
 THEMES = {  # top, bottom, glow, accent
     "ember": ((18, 14, 12), (6, 5, 5), (150, 80, 40), (214, 150, 90)),
@@ -109,7 +124,7 @@ def fit(lines, path, max_w, start, wght=None, floor=30):
     return font(path, size, wght), size
 
 
-def footer(d, W, H, accent, source, hint=True, counter=None, series=None):
+def footer(d, W, H, accent, source, hint=True, counter=None, series=None, date=None):
     if hint:
         h = hint if isinstance(hint, str) else SAVE_HINT
         hf = font(CAIRO, 28, 500)
@@ -120,6 +135,9 @@ def footer(d, W, H, accent, source, hint=True, counter=None, series=None):
     if series:  # e.g. "شهر الصبر · 3/30" top-right
         zf = font(CAIRO, 28, 600)
         text(d, (W - 80 - tlen(zf, series), 70), series, zf, accent + (220,))
+    if date:
+        df = font(CAIRO, 26, 500)
+        text(d, ((W - tlen(df, date)) / 2, 112), date, df, (230, 222, 210, 170))
     hf2 = font(CAIRO, 26, 500)
     d.text(((W - hf2.getlength(HANDLE)) / 2, H - 70), HANDLE, font=hf2, fill=accent + (150,))
     if source:
@@ -171,7 +189,7 @@ def post_image(q, counter=None, hint=True):
     img = with_shadow(img, layer)
     if hint is True and q.get("hint"):
         hint = q["hint"]
-    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter, series=q.get("series"))
+    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter, series=q.get("series"), date=date_line(q))
     return img
 
 
@@ -269,6 +287,10 @@ def story_layer(q, W=1080, H=1920):
     if top:
         tf = font(CAIRO, 36, 600)
         text(sd, ((W - tlen(tf, top)) / 2, 270), top, tf, accent)
+    dl = date_line(q)
+    if dl:
+        df = font(CAIRO, 30, 500)
+        text(sd, ((W - tlen(df, dl)) / 2, 330 if top else 280), dl, df, (230, 222, 210, 190))
     hf = font(CAIRO, 32, 500)
     sd.text(((W - hf.getlength(HANDLE)) / 2, H - 330), HANDLE, font=hf, fill=accent + (170,))
     return bg, layers, S
