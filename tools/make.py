@@ -29,6 +29,7 @@ THEMES = {  # top, bottom, glow, accent
     "ink":   ((22, 16, 24), (7, 5, 8), (120, 70, 110), (215, 180, 210)),
 }
 WHITE = (250, 246, 238)
+LATIN = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
 
 
 def font(path, size, wght=None):
@@ -42,11 +43,11 @@ def font(path, size, wght=None):
 
 
 def tlen(f, s):
-    return f.getlength(s, direction="rtl", language="ar")
+    return f.getlength(s.translate(LATIN), direction="rtl", language="ar")
 
 
 def text(d, xy, s, f, fill):
-    d.text(xy, s, font=f, fill=fill, direction="rtl", language="ar")
+    d.text(xy, s.translate(LATIN), font=f, fill=fill, direction="rtl", language="ar")
 
 
 # ---------- backgrounds ----------
