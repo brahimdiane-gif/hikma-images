@@ -315,8 +315,12 @@ def story_layer(q, W=1080, H=1920):
     for k, line in enumerate(date_parts(q)):
         df = font(CAIRO, 30, 500)
         text(sd, (80, 260 + k * 44), line, df, (235, 228, 216, 200))
+    wp = q.get("wallpaper_hint", "احفظها خلفيةً لهاتفك")
+    if wp:
+        wf = font(CAIRO, 32, 600)
+        text(sd, ((W - tlen(wf, wp)) / 2, H - 400), wp, wf, accent + (210,))
     hf = font(CAIRO, 32, 500)
-    sd.text(((W - hf.getlength(HANDLE)) / 2, H - 330), HANDLE, font=hf, fill=accent + (170,))
+    sd.text(((W - hf.getlength(HANDLE)) / 2, H - 340), HANDLE, font=hf, fill=accent + (170,))
     return bg, layers, S
 
 
