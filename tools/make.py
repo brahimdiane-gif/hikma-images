@@ -20,6 +20,7 @@ FONTS = os.environ.get("HIKMA_FONTS", "/home/claude/gfonts/ofl")
 CAIRO = "cairo/Cairo[slnt,wght].ttf"
 AMIRI = "amiri/Amiri-Bold.ttf"
 SAVE_HINT = "احفظها لتعود إليها"
+HANDLE = "@brahime.dian"
 
 THEMES = {  # top, bottom, glow, accent
     "ember": ((18, 14, 12), (6, 5, 5), (150, 80, 40), (214, 150, 90)),
@@ -108,13 +109,19 @@ def fit(lines, path, max_w, start, wght=None, floor=30):
     return font(path, size, wght), size
 
 
-def footer(d, W, H, accent, source, hint=True, counter=None):
+def footer(d, W, H, accent, source, hint=True, counter=None, series=None):
     if hint:
+        h = hint if isinstance(hint, str) else SAVE_HINT
         hf = font(CAIRO, 28, 500)
-        text(d, ((W - tlen(hf, SAVE_HINT)) / 2, 70), SAVE_HINT, hf, accent + (200,))
+        text(d, ((W - tlen(hf, h)) / 2, 70), h, hf, accent + (200,))
     if counter:
         cf = font(CAIRO, 30, 600)
-        d.text((80, 70), counter, font=cf, fill=accent)
+        d.text((80, 70), counter.translate(LATIN), font=cf, fill=accent)
+    if series:  # e.g. "شهر الصبر · 3/30" top-right
+        zf = font(CAIRO, 28, 600)
+        text(d, (W - 80 - tlen(zf, series), 70), series, zf, accent + (220,))
+    hf2 = font(CAIRO, 26, 500)
+    d.text(((W - hf2.getlength(HANDLE)) / 2, H - 70), HANDLE, font=hf2, fill=accent + (150,))
     if source:
         sf = font(CAIRO, 34, 600)
         sw = tlen(sf, source)
@@ -162,7 +169,9 @@ def post_image(q, counter=None, hint=True):
         text(d, (x_right - tlen(bf, line), y), line, bf, (244, 240, 232))
         y += b_lh
     img = with_shadow(img, layer)
-    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter)
+    if hint is True and q.get("hint"):
+        hint = q["hint"]
+    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter, series=q.get("series"))
     return img
 
 
@@ -191,7 +200,9 @@ def carousel(c, outdir):
     dd = ImageDraw.Draw(img)
     swipe = "اسحب لترى المزيد"
     sw = font(CAIRO, 34, 700)
-    text(dd, ((W - tlen(sw, swipe)) / 2, H - 140), swipe, sw, accent)
+    text(dd, ((W - tlen(sw, swipe)) / 2, H - 150), swipe, sw, accent)
+    hf2 = font(CAIRO, 26, 500)
+    dd.text(((W - hf2.getlength(HANDLE)) / 2, H - 70), HANDLE, font=hf2, fill=accent)
     p = os.path.join(outdir, "01.jpg"); img.save(p, quality=92); paths.append(p)
     # slides
     for i, s in enumerate(c["slides"], start=2):
@@ -215,6 +226,8 @@ def carousel(c, outdir):
     sf = font(CAIRO, 40, 600)
     text(d, ((W - tlen(sf, small[0])) / 2, y + 60), small[0], sf, accent)
     img = with_shadow(img, layer)
+    hf2 = font(CAIRO, 30, 600)
+    ImageDraw.Draw(img).text(((W - hf2.getlength(HANDLE)) / 2, H - 90), HANDLE, font=hf2, fill=accent)
     p = os.path.join(outdir, f"{n:02d}.jpg"); img.save(p, quality=92); paths.append(p)
     return paths
 
@@ -252,6 +265,12 @@ def story_layer(q, W=1080, H=1920):
     sf = font(CAIRO, 40, 600)
     src = q.get("source", "")
     text(sd, ((W - tlen(sf, src)) / 2, ry + 40), src, sf, accent)
+    top = " · ".join(x for x in (q.get("hint"), q.get("series")) if x)
+    if top:
+        tf = font(CAIRO, 36, 600)
+        text(sd, ((W - tlen(tf, top)) / 2, 270), top, tf, accent)
+    hf = font(CAIRO, 32, 500)
+    sd.text(((W - hf.getlength(HANDLE)) / 2, H - 330), HANDLE, font=hf, fill=accent + (170,))
     return bg, layers, S
 
 
@@ -270,6 +289,34 @@ def compose(bg, layers, alphas):
 def story(q, out):
     bg, layers, S = story_layer(q)
     compose(bg, layers + [S], [1] * (len(layers) + 1)).save(out, quality=90)
+
+
+# ---------- highlight covers ----------
+
+def highlights(h, outdir):
+    """h = {"items": [{"label": "آيات", "theme": "night"}, ...]} -> 1080x1920 covers, label centered in the circle crop."""
+    os.makedirs(outdir, exist_ok=True)
+    paths = []
+    for i, it in enumerate(h["items"], start=1):
+        W, H = 1080, 1920
+        theme = it.get("theme", "ember")
+        top, bot, glow, accent = THEMES[theme]
+        img = Image.new("RGB", (W, H), bot)
+        g = Image.new("RGB", (W, H), (0, 0, 0))
+        ImageDraw.Draw(g).ellipse((W / 2 - 600, H / 2 - 600, W / 2 + 600, H / 2 + 600), fill=tuple(int(c * 0.7) for c in glow))
+        img = ImageChops.add(img, g.filter(ImageFilter.GaussianBlur(220)))
+        d = ImageDraw.Draw(img)
+        cx, cy = W / 2, H / 2
+        for rr in (330, 300):
+            for rot in (0, math.pi / 4):
+                pts = [(cx + rr * math.cos(rot + k * math.pi / 2), cy + rr * math.sin(rot + k * math.pi / 2)) for k in range(4)]
+                d.polygon(pts, outline=accent, width=4 if rr == 330 else 2)
+        f, _ = fit([it["label"]], CAIRO, 380, 150, 800)
+        lbl = it["label"]
+        bb = d.textbbox((0, 0), lbl.translate(LATIN), font=f, direction="rtl", language="ar")
+        text(d, (cx - (bb[2] - bb[0]) / 2 - bb[0], cy - (bb[3] - bb[1]) / 2 - bb[1]), lbl, f, WHITE)
+        p = os.path.join(outdir, f"{i:02d}.jpg"); img.save(p, quality=92); paths.append(p)
+    return paths
 
 
 # ---------- reel ----------
@@ -310,6 +357,8 @@ if __name__ == "__main__":
         print("\n".join(carousel(q, out)))
     elif kind == "story":
         story(q, out)
+    elif kind == "highlights":
+        print("\n".join(highlights(q, out)))
     elif kind == "reel":
         reel(q, out)
     else:
