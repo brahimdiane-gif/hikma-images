@@ -15,6 +15,8 @@ Fonts are read from FONTS (google/fonts sparse checkout: ofl/cairo + ofl/amiri).
 """
 import json, math, os, random, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import scenes
 
 FONTS = os.environ.get("HIKMA_FONTS", "/home/claude/gfonts/ofl")
 CAIRO = "cairo/Cairo[slnt,wght].ttf"
@@ -23,6 +25,18 @@ SAVE_HINT = "احفظها لتعود إليها"
 HANDLE = "@brahime.dian"
 MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"]  # Moroccan names
 DAYS = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+
+
+def date_parts(q):
+    if not q.get("hijri") and not q.get("date"):
+        return []
+    import datetime
+    d = datetime.date.fromisoformat(q["date"]) if q.get("date") else datetime.date.today()
+    out = [f"{DAYS[d.weekday()]} {d.day} {MONTHS[d.month - 1]} {d.year}"]
+    h = q.get("hijri")
+    if h:
+        out.append(h if h.endswith("هـ") else h + "هـ")
+    return out
 
 
 def date_line(q):
@@ -106,6 +120,15 @@ def background(W, H, theme, seed, centered=False):
     return Image.composite(img, Image.new("RGB", (W, H), (0, 0, 0)), vig.filter(ImageFilter.GaussianBlur(240)))
 
 
+def make_bg(q, W, H, theme, seed, centered=False):
+    """Background priority: q['photo'] (path to a user photo) > q['scene'] (cosmos|mosque|birds|desert|sea) > plain theme."""
+    if q.get("photo"):
+        return scenes.photo_bg(q["photo"], W, H)
+    if q.get("scene"):
+        return scenes.scene(q["scene"], W, H, seed)
+    return background(W, H, theme, seed, centered)
+
+
 def with_shadow(img, layer, blur=9, off=(3, 7)):
     sh = Image.new("L", img.size, 0)
     sh.paste(layer.split()[3].filter(ImageFilter.GaussianBlur(blur)).point(lambda v: int(v * 0.85)), off)
@@ -135,9 +158,10 @@ def footer(d, W, H, accent, source, hint=True, counter=None, series=None, date=N
     if series:  # e.g. "شهر الصبر · 3/30" top-right
         zf = font(CAIRO, 28, 600)
         text(d, (W - 80 - tlen(zf, series), 70), series, zf, accent + (220,))
-    if date:
+    if date:  # list of lines, top-left
         df = font(CAIRO, 26, 500)
-        text(d, ((W - tlen(df, date)) / 2, 112), date, df, (230, 222, 210, 170))
+        for k, line in enumerate(date):
+            text(d, (80, 66 + k * 38), line, df, (235, 228, 216, 190))
     hf2 = font(CAIRO, 26, 500)
     d.text(((W - hf2.getlength(HANDLE)) / 2, H - 70), HANDLE, font=hf2, fill=accent + (150,))
     if source:
@@ -155,7 +179,7 @@ def post_image(q, counter=None, hint=True):
     W, H = 1080, 1350
     theme = q.get("theme", "ember")
     accent = THEMES[theme][3]
-    img = background(W, H, theme, q.get("seed", 1))
+    img = make_bg(q, W, H, theme, q.get("seed", 1))
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     margin, x_right = 110, W - 110
@@ -189,7 +213,7 @@ def post_image(q, counter=None, hint=True):
     img = with_shadow(img, layer)
     if hint is True and q.get("hint"):
         hint = q["hint"]
-    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter, series=q.get("series"), date=date_line(q))
+    footer(ImageDraw.Draw(img, "RGBA"), W, H, accent, q.get("source"), hint=hint, counter=counter, series=q.get("series"), date=date_parts(q))
     return img
 
 
@@ -201,7 +225,7 @@ def carousel(c, outdir):
     # cover
     W, H = 1080, 1350
     accent = THEMES[theme][3]
-    img = background(W, H, theme, seed)
+    img = make_bg(c, W, H, theme, seed)
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     cf, cs = fit(c["cover"], CAIRO, W - 200, 120, 800)
@@ -225,13 +249,14 @@ def carousel(c, outdir):
     # slides
     for i, s in enumerate(c["slides"], start=2):
         q = {"title": s.get("title") or s["lines"][:1], "lines": s.get("body") or s["lines"][1:],
-             "source": s.get("source"), "theme": theme, "seed": seed + i}
+             "source": s.get("source"), "theme": theme, "seed": seed + i,
+             "scene": s.get("scene", c.get("scene")), "photo": s.get("photo")}
         if not q["lines"]:
-            q = {"title": [], "lines": s["lines"], "source": s.get("source"), "theme": theme, "seed": seed + i}
+            q.update({"title": [], "lines": s["lines"]})
         img = post_image(q, counter=f"{i}/{n}", hint=False)
         p = os.path.join(outdir, f"{i:02d}.jpg"); img.save(p, quality=92); paths.append(p)
     # closing slide
-    img = background(W, H, theme, seed + 99)
+    img = make_bg(c, W, H, theme, seed + 99)
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     lines = c.get("closing") or ["أيّها لمس قلبك؟", "اكتب رقمها في التعليقات"]
@@ -256,7 +281,7 @@ def story_layer(q, W=1080, H=1920):
     """Returns (background, list of per-line RGBA layers, source layer)."""
     theme = q.get("theme", "night")
     accent = THEMES[theme][3]
-    bg = background(W, H, theme, q.get("seed", 1), centered=True)
+    bg = make_bg(q, W, H, theme, q.get("seed", 1), centered=True)
     lines = q["lines"]
     quran = q.get("quran", True)
     path = AMIRI if quran else CAIRO
@@ -286,11 +311,10 @@ def story_layer(q, W=1080, H=1920):
     top = " · ".join(x for x in (q.get("hint"), q.get("series")) if x)
     if top:
         tf = font(CAIRO, 36, 600)
-        text(sd, ((W - tlen(tf, top)) / 2, 270), top, tf, accent)
-    dl = date_line(q)
-    if dl:
+        text(sd, ((W - tlen(tf, top)) / 2, 380), top, tf, accent)
+    for k, line in enumerate(date_parts(q)):
         df = font(CAIRO, 30, 500)
-        text(sd, ((W - tlen(df, dl)) / 2, 330 if top else 280), dl, df, (230, 222, 210, 190))
+        text(sd, (80, 260 + k * 44), line, df, (235, 228, 216, 200))
     hf = font(CAIRO, 32, 500)
     sd.text(((W - hf.getlength(HANDLE)) / 2, H - 330), HANDLE, font=hf, fill=accent + (170,))
     return bg, layers, S
