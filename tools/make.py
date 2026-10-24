@@ -154,7 +154,9 @@ def footer(d, W, H, accent, source, hint=True, counter=None, series=None, date=N
         text(d, ((W - tlen(hf, h)) / 2, 70), h, hf, accent + (200,))
     if counter:
         cf = font(CAIRO, 30, 600)
-        d.text((80, 70), counter.translate(LATIN), font=cf, fill=accent)
+        ct = counter.translate(LATIN)
+        cx = W - 80 - cf.getlength(ct) if (date and not series) else 80
+        d.text((cx, 70), ct, font=cf, fill=accent)
     if series:  # e.g. "شهر الصبر · 3/30" top-right
         zf = font(CAIRO, 28, 600)
         text(d, (W - 80 - tlen(zf, series), 70), series, zf, accent + (220,))
@@ -250,7 +252,8 @@ def carousel(c, outdir):
     for i, s in enumerate(c["slides"], start=2):
         q = {"title": s.get("title") or s["lines"][:1], "lines": s.get("body") or s["lines"][1:],
              "source": s.get("source"), "theme": theme, "seed": seed + i,
-             "scene": s.get("scene", c.get("scene")), "photo": s.get("photo")}
+             "scene": s.get("scene", c.get("scene")), "photo": s.get("photo"),
+             "date": c.get("date"), "hijri": c.get("hijri")}
         if not q["lines"]:
             q.update({"title": [], "lines": s["lines"]})
         img = post_image(q, counter=f"{i}/{n}", hint=False)
