@@ -22,7 +22,7 @@ FONTS = os.environ.get("HIKMA_FONTS", "/home/claude/gfonts/ofl")
 CAIRO = "cairo/Cairo[slnt,wght].ttf"
 AMIRI = "amiri/Amiri-Bold.ttf"
 SAVE_HINT = "احفظها لتعود إليها"
-HANDLE = "@brahime.dian"
+HANDLE = "@hikma.alyawm"
 MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"]  # Moroccan names
 DAYS = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
 
