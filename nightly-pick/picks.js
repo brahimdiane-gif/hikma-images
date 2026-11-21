@@ -11,5 +11,15 @@ window.PICKS = [
   { title: "Everything Everywhere All at Once", year: 2022, genre: "Sci-fi comedy", runtime: "2h 19m", mood: ["mind-bending", "funny"], why: "Multiverse chaos wrapped around a very human story about family." },
   { title: "Amélie", year: 2001, genre: "Romantic comedy", runtime: "2h 2m", mood: ["cozy"], why: "A whimsical Paris, small kindnesses, and a love of tiny details." },
   { title: "Parasite", year: 2019, genre: "Thriller", runtime: "2h 12m", mood: ["thrilling", "mind-bending"], why: "A razor-sharp class satire that keeps changing shape." },
-  { title: "The Princess Bride", year: 1987, genre: "Adventure comedy", runtime: "1h 38m", mood: ["cozy", "funny"], why: "Swordfights, true love, and the most comfortable rewatch there is." }
+  { title: "The Princess Bride", year: 1987, genre: "Adventure comedy", runtime: "1h 38m", mood: ["cozy", "funny"], why: "Swordfights, true love, and the most comfortable rewatch there is." },
+  { title: "The Shawshank Redemption", year: 1994, genre: "Drama", runtime: "2h 22m", mood: ["cozy"], why: "Patient, moving, and one of the most hopeful stories ever put on screen." },
+  { title: "Whiplash", year: 2014, genre: "Music drama", runtime: "1h 47m", mood: ["thrilling"], why: "A drum lesson that plays like a thriller, with a finale that leaves you breathless." },
+  { title: "Interstellar", year: 2014, genre: "Sci-fi", runtime: "2h 49m", mood: ["mind-bending"], why: "Space, time and a father's promise, scored by an organ you'll feel in your chest." },
+  { title: "Superbad", year: 2007, genre: "Comedy", runtime: "1h 53m", mood: ["funny"], why: "A raunchy but surprisingly sweet last-night-of-high-school comedy." },
+  { title: "Coco", year: 2017, genre: "Animated family", runtime: "1h 45m", mood: ["cozy"], why: "A colorful, music-filled story about family, memory and remembering." },
+  { title: "Shutter Island", year: 2010, genre: "Psychological thriller", runtime: "2h 18m", mood: ["thrilling", "mind-bending"], why: "A storm, an asylum, and a mystery that keeps rewriting itself." },
+  { title: "Groundhog Day", year: 1993, genre: "Comedy", runtime: "1h 41m", mood: ["funny", "cozy"], why: "The same day, again and again, and a quietly profound lesson in being better." },
+  { title: "Memento", year: 2000, genre: "Mystery thriller", runtime: "1h 53m", mood: ["mind-bending", "thrilling"], why: "A story told backwards, so you share the hero's confusion." },
+  { title: "Soul", year: 2020, genre: "Animated drama", runtime: "1h 40m", mood: ["cozy", "mind-bending"], why: "Jazz, afterlives, and a gentle reminder to notice small joys." },
+  { title: "Hot Fuzz", year: 2007, genre: "Action comedy", runtime: "2h 1m", mood: ["funny", "thrilling"], why: "A sharp, fast, joke-per-second parody that also works as a real action film." }
 ];

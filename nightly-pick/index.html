@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="description" content="One hand-picked film to watch tonight. A new pick every night.">
+  <meta property="og:title" content="Nightly Pick — one film for tonight">
+  <meta property="og:description" content="One hand-picked film to watch tonight. A new pick every night.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23f0c24a'/%3E%3Ccircle cx='22' cy='13' r='12' fill='%23141428'/%3E%3C/svg%3E">
   <title>Nightly Pick — one film for tonight</title>
   <link rel="stylesheet" href="style.css">
   <script src="picks.js" defer></script>
@@ -43,9 +46,17 @@
           <p class="actions">
             <button type="button" id="another" class="btn">Another pick</button>
             <a id="pick-link" class="btn ghost" target="_blank" rel="noopener noreferrer">Find where to watch</a>
+            <button type="button" id="save" class="btn ghost" aria-pressed="false">Save to watchlist</button>
+            <button type="button" id="share" class="btn ghost">Share</button>
           </p>
+          <p id="status" class="status" role="status"></p>
         </div>
       </article>
+    </section>
+
+    <section class="watchlist" id="watchlist-section" aria-labelledby="watchlist-heading" hidden>
+      <h2 id="watchlist-heading">Your watchlist</h2>
+      <ul class="grid" id="watchlist"></ul>
     </section>
 
     <section class="archive" aria-labelledby="archive-heading">
