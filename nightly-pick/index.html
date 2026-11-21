@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="One hand-picked film to watch tonight. A new pick every night.">
+  <title>Nightly Pick — one film for tonight</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="picks.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Nightly Pick, home">
+      <span class="moon" aria-hidden="true"></span>
+      Nightly Pick
+    </a>
+    <p class="date"><time id="today"></time></p>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="tonight-heading">
+      <p class="eyebrow">Tonight's pick</p>
+      <h1 id="tonight-heading">One film. <span>No scrolling.</span></h1>
+      <p class="lede">Every night we choose a single film worth your evening. Tell us your mood and we'll narrow it down.</p>
+
+      <fieldset class="moods">
+        <legend class="visually-hidden">Choose a mood</legend>
+        <button type="button" class="chip" data-mood="all" aria-pressed="true">Surprise me</button>
+        <button type="button" class="chip" data-mood="cozy" aria-pressed="false">Cozy</button>
+        <button type="button" class="chip" data-mood="thrilling" aria-pressed="false">Thrilling</button>
+        <button type="button" class="chip" data-mood="mind-bending" aria-pressed="false">Mind-bending</button>
+        <button type="button" class="chip" data-mood="funny" aria-pressed="false">Funny</button>
+      </fieldset>
+
+      <article class="pick" id="pick" aria-live="polite" aria-atomic="true">
+        <div class="poster" id="poster" aria-hidden="true"></div>
+        <div class="pick-body">
+          <p class="meta"><span id="pick-year"></span> · <span id="pick-genre"></span> · <span id="pick-runtime"></span></p>
+          <h2 id="pick-title"></h2>
+          <p id="pick-why"></p>
+          <p class="actions">
+            <button type="button" id="another" class="btn">Another pick</button>
+            <a id="pick-link" class="btn ghost" target="_blank" rel="noopener noreferrer">Find where to watch</a>
+          </p>
+        </div>
+      </article>
+    </section>
+
+    <section class="archive" aria-labelledby="archive-heading">
+      <h2 id="archive-heading">Recent picks</h2>
+      <ul class="grid" id="archive"></ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Nightly Pick — a new film every night.</p>
+  </footer>
+</body>
+</html>
